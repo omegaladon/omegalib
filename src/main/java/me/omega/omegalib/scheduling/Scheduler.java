@@ -3,7 +3,6 @@ package me.omega.omegalib.scheduling;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +14,6 @@ import java.util.concurrent.CompletableFuture;
 public class Scheduler {
 
     private static JavaPlugin plugin;
-    private static BukkitScheduler scheduler;
 
     private static final SyncScheduler sync = new SyncScheduler();
     private static final AsyncScheduler async = new AsyncScheduler();
@@ -30,11 +28,10 @@ public class Scheduler {
 
     public static void init(JavaPlugin plugin) {
         Scheduler.plugin = plugin;
-        Scheduler.scheduler = Bukkit.getScheduler();
     }
 
     public static void cancelAll() {
-        scheduler.cancelTasks(plugin);
+        Bukkit.getScheduler().cancelTasks(plugin);
     }
 
     public class SyncScheduler implements SchedulerType {
@@ -42,7 +39,7 @@ public class Scheduler {
         @Override
         public CompletableFuture<Void> run(Runnable runnable) {
             CompletableFuture<Void> future = new CompletableFuture<>();
-            scheduler.runTask(plugin, () -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
                 runnable.run();
                 future.complete(null);
             });
@@ -52,7 +49,7 @@ public class Scheduler {
         @Override
         public CompletableFuture<Void> runLater(Runnable runnable, long delay) {
             CompletableFuture<Void> future = new CompletableFuture<>();
-            scheduler.runTaskLater(plugin, () -> {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 runnable.run();
                 future.complete(null);
             }, delay);
@@ -62,7 +59,7 @@ public class Scheduler {
 
         @Override
         public BukkitTask runRepeating(Runnable runnable, long delay, long period) {
-            return scheduler.runTaskTimer(plugin, runnable, delay, period);
+            return Bukkit.getScheduler().runTaskTimer(plugin, runnable, delay, period);
         }
 
     }
@@ -72,7 +69,7 @@ public class Scheduler {
         @Override
         public CompletableFuture<Void> run(Runnable runnable) {
             CompletableFuture<Void> future = new CompletableFuture<>();
-            scheduler.runTaskAsynchronously(plugin, () -> {
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 runnable.run();
                 future.complete(null);
             });
@@ -82,7 +79,7 @@ public class Scheduler {
         @Override
         public CompletableFuture<Void> runLater(Runnable runnable, long delay) {
             CompletableFuture<Void> future = new CompletableFuture<>();
-            scheduler.runTaskLaterAsynchronously(plugin, () -> {
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
                 runnable.run();
                 future.complete(null);
             }, delay);
@@ -92,7 +89,7 @@ public class Scheduler {
 
         @Override
         public BukkitTask runRepeating(Runnable runnable, long delay, long period) {
-            return scheduler.runTaskTimerAsynchronously(plugin, runnable, delay, period);
+            return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delay, period);
         }
 
     }

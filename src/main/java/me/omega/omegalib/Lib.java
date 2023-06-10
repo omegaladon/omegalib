@@ -17,6 +17,7 @@ public class Lib extends AbstractJavaPlugin {
     @Override
     public void enable() {
 
+        getLogger().info("Initializing scheduler...");
         Scheduler.init(this);
 
         finishedLoading = false;
