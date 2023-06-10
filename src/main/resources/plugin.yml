@@ -1,0 +1,7 @@
+main: me.omega.omegalib.Lib
+version: 1.0.0
+api-version: 1.19
+author: omega
+name: omegalib
+depend:
+    - NBTAPI
