@@ -3,44 +3,38 @@ package me.omega.omegalib.utils;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.ChatColor;
+import org.apache.commons.lang3.text.WordUtils;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * A utility class for working with text-related operations.
- */
+
 @UtilityClass
 public class Text {
 
-    private static final Pattern hexPattern = Pattern.compile("#[a-fA-F\\d]{6}");
+    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private static final Pattern HEX_PATTERN = Pattern.compile("&#[a-fA-F0-9]{6}");
 
-    /**
-     * Converts a {@code String} into a {@link TextComponent} using the {@link LegacyComponentSerializer}.
-     * <p>Supports legacy color codes and hex colors formatted as {@code &#123456}.</p>
-     *
-     * @param text the text to convert
-     * @return a {@link TextComponent} representing the given text
-     */
     public static TextComponent componentOf(@NonNull String text) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(text);
+        return (TextComponent) miniMessage.deserialize(text).decoration(TextDecoration.ITALIC, false);
     }
 
-    /**
-     * Returns a colored version of the input text by replacing hexadecimal color codes with their corresponding
-     * {@link net.md_5.bungee.api.ChatColor} values.
-     *
-     * @param text the text to color
-     * @return the colored text
-     */
-    public static String colored(@NonNull String text) {
-        for (Matcher match = hexPattern.matcher(text); match.find(); match = hexPattern.matcher(text)) {
-            String color = text.substring(match.start(), match.end());
-            text = text.replace(color, String.valueOf(net.md_5.bungee.api.ChatColor.of(color)));
-        }
-        return ChatColor.translateAlternateColorCodes('&', text);
+    public static TextComponent legacyComponentOf(@NonNull String text) {
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(text).decoration(TextDecoration.ITALIC, false);
+    }
+
+    public static String wrap(String text, int maxChars, String join) {
+        return WordUtils.wrap(text, maxChars, join, false);
+    }
+
+    public static String getProgressBar(double current, double max, int totalBars, char symbol, String completedColor, String notCompletedColor) {
+        double percent = (current / max);
+        int progressBars = (int) (totalBars * percent);
+
+        return String.format("%s%s", completedColor, new String(new char[progressBars]).replace('\0', symbol)) +
+                String.format("%s%s", notCompletedColor, new String(new char[totalBars - progressBars]).replace('\0', symbol));
     }
 
 }

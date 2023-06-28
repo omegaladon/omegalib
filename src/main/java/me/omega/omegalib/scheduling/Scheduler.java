@@ -7,9 +7,6 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Scheduling utilities.
- */
 @UtilityClass
 public class Scheduler {
 

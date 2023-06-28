@@ -2,7 +2,7 @@ package me.omega.omegalib.item.head;
 
 import com.google.gson.JsonObject;
 import lombok.SneakyThrows;
-import me.omega.omegalib.Lib;
+import me.omega.omegalib.OmegaLib;
 import me.omega.omegalib.utils.Http;
 
 import java.net.HttpURLConnection;
@@ -16,7 +16,7 @@ public class Heads {
     private static final List<HeadCategory> CATEGORIES = new ArrayList<>();
     private static final Map<Integer, HeadEntry> HEADS = new HashMap<>();
 
-    private static final boolean LOADED = false;
+    private static boolean LOADED = false;
     private static boolean DEBUG = false;
 
     public static void setDebug(boolean debug) {
@@ -49,7 +49,7 @@ public class Heads {
                 List<JsonObject> headValues = (List<JsonObject>) values.get();
                 List<HeadEntry> headEntries = new ArrayList<>();
                 for (JsonObject value : headValues) {
-                    if (DEBUG) Lib.getInstance().getLogger().info(value.toString());
+                    if (DEBUG) OmegaLib.getInstance().getLogger().info(value.toString());
                     HeadEntry headEntry = new HeadEntry(
                             value.get("name").getAsString(),
                             UUID.fromString(value.get("uuid").getAsString()),
@@ -65,42 +65,22 @@ public class Heads {
 
             connection.disconnect();
         }
+        LOADED = true;
 
     }
 
-    /**
-     * Gets the head entry with the given ID.
-     *
-     * @param id the ID to get
-     * @return a nullable optional containing the head entry
-     */
     public static Optional<HeadEntry> getHeadEntry(int id) {
         return Optional.ofNullable(HEADS.get(id));
     }
 
-    /**
-     * Gets a list of all head categories.
-     *
-     * @return a list of all head categories
-     */
     public static List<HeadCategory> getCategories() {
         return CATEGORIES;
     }
 
-    /**
-     * Gets a list of all head entries.
-     *
-     * @return a list of all head entries
-     */
     public static List<HeadEntry> getHeads() {
         return new ArrayList<>(HEADS.values());
     }
 
-    /**
-     * Returns whether the head database is loaded.
-     *
-     * @return true if the head database is loaded, false otherwise
-     */
     public static boolean isLoaded() {
         return LOADED;
     }

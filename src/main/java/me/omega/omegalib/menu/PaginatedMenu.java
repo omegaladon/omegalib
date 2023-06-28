@@ -1,18 +1,19 @@
 package me.omega.omegalib.menu;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import me.omega.omegalib.utils.Pair;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public abstract class PaginatedMenu<T> extends Menu {
 
-    private final List<T> pageItems = new ArrayList<>();
-    private final int page;
+    private List<T> pageItems = new ArrayList<>();
+    @Setter
+    @Getter
+    private int page;
 
     private Pair<Integer, MenuItem> pageUpItem;
     private Pair<Integer, MenuItem> pageDownItem;
@@ -20,25 +21,12 @@ public abstract class PaginatedMenu<T> extends Menu {
     private boolean alwaysDisplayPageItems = true;
 
     /**
-     * Creates a paginated menu with a title and size. Paginated menus are only compatible chest inventory types.
-     * <p/>
-     * Using this constructor will start the menu on page 0.
-     *
-     * @param title the title
-     * @param size  the size
+     * Creates a paginated menu starting at page 0 (first page).
      */
     public PaginatedMenu(String title, int size) {
         this(title, size, 0);
     }
 
-    /**
-     * Creates a paginated menu with a title, size, and page. Paginated menus are only compatible chest inventory
-     * types.
-     *
-     * @param title the title
-     * @param size  the size
-     * @param page  the page to start on
-     */
     public PaginatedMenu(String title, int size, int page) {
         super(title, size);
         this.page = page;
@@ -46,38 +34,23 @@ public abstract class PaginatedMenu<T> extends Menu {
 
     /**
      * Gets the desired amount of items per page.
-     *
-     * @return the amount of items
      */
     public abstract int getItemsPerPage();
 
     /**
      * Converts the parameterized type to a menu item suitable for being displayed in the menu.
-     *
-     * @param type the type
-     * @return a menu item
      */
     public abstract MenuItem typeToItem(@NonNull T type);
 
     /**
-     * Sets the items to be displayed on the current page of the paginated menu to the given list of items.
-     *
-     * @param pageItems the list of items to set as the page items
-     * @throws IllegalArgumentException if pageItems is greater than the maximum items per page
+     * Sets the items to be displayed in the menu. This should be a list of objects of the specified type.
      */
     public void setPageItems(@NonNull List<T> pageItems) {
-        if (pageItems.size() > getItemsPerPage())
-            throw new IllegalArgumentException("Page items must be less than or equal to the maximum items per page. " +
-                                               "(" + getItemsPerPage() + ")");
-        this.pageItems.clear();
-        this.pageItems.addAll(pageItems);
+        this.pageItems = pageItems;
     }
 
     /**
      * Sets the menu item for the page up action to the given item and slot.
-     *
-     * @param slot the slot
-     * @param item the menu item
      */
     public void setPageUpItem(int slot, @NonNull MenuItem item) {
         pageUpItem = new Pair<>(slot, item);
@@ -85,9 +58,6 @@ public abstract class PaginatedMenu<T> extends Menu {
 
     /**
      * Sets the menu item for the page down action to the given item and slot.
-     *
-     * @param slot the slot
-     * @param item the menu item
      */
     public void setPageDownItem(int slot, @NonNull MenuItem item) {
         pageDownItem = new Pair<>(slot, item);
@@ -95,8 +65,6 @@ public abstract class PaginatedMenu<T> extends Menu {
 
     /**
      * Returns the maximum number of pages that can be accessed in the paginated menu.
-     *
-     * @return the maximum number of pages
      */
     public int getMaxPages() {
         return (int) Math.ceil((double) pageItems.size() / getItemsPerPage());
@@ -107,7 +75,6 @@ public abstract class PaginatedMenu<T> extends Menu {
      * <p/>
      * This method should be placed in the {@link #draw()} method of the menu.
      *
-     * @param paginatedItemPattern the pattern to use for filling the menu
      * @throws NullPointerException     if the page up or page down items are null
      * @throws IllegalStateException    if the page items have not been set
      * @throws IllegalArgumentException if the amount of key slots in the pattern is less than the items per page, or if
@@ -128,11 +95,6 @@ public abstract class PaginatedMenu<T> extends Menu {
             throw new NullPointerException("Page up and page down items must not be null.");
         }
 
-        if ((Objects.equals(paginatedItemPattern.getKeyIndexes(), pageUpItem.key()))
-            || Objects.equals(paginatedItemPattern.getKeyIndexes(), pageDownItem.key())) {
-            throw new IllegalArgumentException("Page up and page down items must not be in the pattern.");
-        }
-
         int itemsPerPage = getItemsPerPage();
         int startIndex = page * itemsPerPage;
         int endIndex = startIndex + itemsPerPage;
@@ -150,7 +112,7 @@ public abstract class PaginatedMenu<T> extends Menu {
             if (page > 0) {
                 setItem(pageDownItem.key(), pageDownItem.value());
             }
-            if (page < getMaxPages()) {
+            if (page + 1 < getMaxPages()) {
                 setItem(pageUpItem.key(), pageUpItem.value());
             }
         } else {

@@ -1,79 +1,51 @@
 package me.omega.omegalib.plugin;
 
+import co.aikar.commands.PaperCommandManager;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
-import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
-import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
-import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import lombok.Getter;
-import lombok.NonNull;
-import me.omega.omegalib.Configurations;
-import me.omega.omegalib.command.CommandRegistry;
-import org.bukkit.event.Listener;
+import me.omega.omegalib.utils.Configurations;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
-import java.io.IOException;
 
 @Getter
 public abstract class AbstractJavaPlugin extends JavaPlugin {
 
-    private final CommandRegistry commandRegistry = new CommandRegistry(this);
+    private PaperCommandManager commandManager;
+    private Configurations configurations;
 
-    private final Configurations configs = new Configurations();
-
+    /**
+     * Initialize the database codec, pojo providers, and anything else needed to be run before database initialization.
+     */
+    public abstract void initializeDatabase();
+    /**
+     * Is called after abstract plugin runs enable code. Put stuff like accessing DB here.
+     */
     public abstract void enable();
-
     public abstract void disable();
 
     /**
-     * Registers a new configuration file, accessible via {@link #getConfigs()}.
-     *
-     * @param versioningName the name of the versioning field in the config
-     * @param resourceNames  the name(s) of the configuration file
-     * @throws IOException              if the configuration file could not be created
-     * @throws IllegalArgumentException if the resource does not exist
+     * Register ACF commands and tab completions here.
      */
-    public void registerConfig(@NonNull String versioningName, @NonNull String... resourceNames) throws IllegalArgumentException, IOException {
-        for (String name : resourceNames) {
-            if (getResource(name + ".yml") == null)
-                throw new IllegalArgumentException("The resource " + name + ".yml does not exist.");
+    public abstract void registerCommands();
 
-            configs.put(name, YamlDocument.create(
-                    new File(getDataFolder(), name + ".yml"),
-                    getResource(name + ".yml"),
-                    GeneralSettings.DEFAULT,
-                    LoaderSettings.builder().setAutoUpdate(true).build(),
-                    DumperSettings.DEFAULT,
-                    UpdaterSettings.builder().setVersioning(new BasicVersioning(versioningName)).build()
-            ));
-        }
+    public YamlDocument getConfig(String resourceName) {
+        return configurations.get(resourceName);
     }
 
-    /**
-     * Registers a new listener.
-     *
-     * @param listeners the listener(s) to register
-     */
-    public void registerListeners(@NonNull Listener... listeners) {
-        for (Listener listener : listeners)
-            getServer().getPluginManager().registerEvents(listener, this);
-    }
-
-    /**
-     * Called when the plugin is enabled.
-     */
     @Override
     public void onEnable() {
+        configurations = new Configurations(this);
+        initializeDatabase();
+        commandManager = new PaperCommandManager(this);
+        commandManager.enableUnstableAPI("brigadier");
+        commandManager.enableUnstableAPI("help");
         enable();
+        registerCommands();
     }
 
-    /**
-     * Called when the plugin is disabled.
-     */
     @Override
     public void onDisable() {
+        Bukkit.getScheduler().cancelTasks(this);
         disable();
     }
 

@@ -21,13 +21,6 @@ public class MenuPattern {
     private final List<char[]> pattern = new ArrayList<>();
     private final List<Integer> acceptedSlots = new ArrayList<>();
 
-    /**
-     * Constructs a new MenuPattern with the given key and empty characters.
-     *
-     * @param key   the key character
-     * @param empty the empty character
-     * @throws IllegalArgumentException if key and empty characters are the same
-     */
     public MenuPattern(char key, char empty) {
         if (key == empty)
             throw new IllegalArgumentException("Key and empty characters must be different.");
@@ -35,31 +28,14 @@ public class MenuPattern {
         this.empty = empty;
     }
 
-    /**
-     * Constructs a new MenuPattern with default key and empty characters.
-     * <p/>
-     * By default, the key character is '1' and the empty character is '0'.
-     */
     public MenuPattern() {
         this('1', '0');
     }
 
-    /**
-     * Adds an accepted slot to the list of already accepted slots. If a slot is accepted, it means that it has been
-     * filled with an item.
-     *
-     * @param slot the index of the slot to add
-     */
     public void addAcceptedSlot(int slot) {
         acceptedSlots.add(slot);
     }
 
-    /**
-     * Checks if a slot is an accepted slot. If a slot is accepted, it means that it has been filled with an item.
-     *
-     * @param slot the index of the slot to check
-     * @return true if the slot is an accepted slot, false otherwise
-     */
     public boolean isAccepted(int slot) {
         return acceptedSlots.contains(slot);
     }
@@ -67,8 +43,6 @@ public class MenuPattern {
     /**
      * Adds a row to the pattern.
      *
-     * @param input the row to add, represented as a string
-     * @return this MenuPattern instance, for chaining
      * @throws IllegalArgumentException if the row is not 9 characters long, contains characters other than the key and
      *                                  empty, or if the pattern already contains 6 rows
      */
@@ -90,10 +64,35 @@ public class MenuPattern {
     }
 
     /**
-     * Gets the number of key characters in the pattern.
-     *
-     * @return the number of key characters
+     * Adds a full line of empty characters.
      */
+    public MenuPattern empty() {
+        if (pattern.size() == 6) {
+            throw new IllegalArgumentException("Pattern cannot contain more than 6 rows.");
+        }
+        char[] chars = new char[9];
+        for (int i = 0; i < 9; i++) {
+            chars[i] = empty;
+        }
+        pattern.add(chars);
+        return this;
+    }
+
+    /**
+     * Adds a full line of key characters.
+     */
+    public MenuPattern full() {
+        if (pattern.size() == 6) {
+            throw new IllegalArgumentException("Pattern cannot contain more than 6 rows.");
+        }
+        char[] chars = new char[9];
+        for (int i = 0; i < 9; i++) {
+            chars[i] = key;
+        }
+        pattern.add(chars);
+        return this;
+    }
+
     public int getKeyAmount() {
         int count = 0;
         for (char[] chars : pattern) {
@@ -106,11 +105,6 @@ public class MenuPattern {
         return count;
     }
 
-    /**
-     * Gets the indexes of the key characters in the pattern.
-     *
-     * @return an array of indexes of the key characters
-     */
     public int[] getKeyIndexes() {
         int[] indexes = new int[getKeyAmount()];
         int index = 0;

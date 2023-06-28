@@ -19,31 +19,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * A builder for player skulls, both of actual players and of custom skulls from minecraft-heads.com.
- */
 @ToString
 public class HeadBuilder extends GenericItemBuilder {
 
     private static final Map<String, HeadBuilder> SKULL_CACHE = new HashMap<>();
 
-    /**
-     * Creates a head builder with a {@link Material#PLAYER_HEAD}. This is the only material that can be used for player
-     * skulls.
-     */
     public HeadBuilder() {
         super(new ItemStack(Material.PLAYER_HEAD));
     }
 
-    /**
-     * Sets the texture of the player head to the texture of the head with the given id in the head database.
-     * <p/>
-     * This method will not work if the head database is not loaded. Load the head database with {@link Heads#load()}.
-     *
-     * @param id the ID of the HeadEntry in the head database
-     * @return this head builder, for chaining
-     * @throws IllegalArgumentException if the Heads database is not loaded or if the ID is not in the database.
-     */
     public HeadBuilder database(int id) {
         if (!Heads.isLoaded()) {
             throw new IllegalArgumentException("The head database is not loaded. Load it with Heads.load().");
@@ -55,23 +39,10 @@ public class HeadBuilder extends GenericItemBuilder {
         return texture(entry.get().name(), entry.get().uuid(), entry.get().texture());
     }
 
-    /**
-     * Sets the texture of the player head to the given player's head texture.
-     *
-     * @param player the player to get the head texture from
-     * @return this head builder, for chaining
-     */
     public HeadBuilder owner(@NonNull Player player) {
         return owner(player.getName(), player.getUniqueId());
     }
 
-    /**
-     * Sets the texture of the player head to a texture value obtained using the mojang api.
-     *
-     * @param name the name of the player
-     * @param uuid the uuid of the player
-     * @return this head builder, for chaining
-     */
     public HeadBuilder owner(@NonNull String name, @NonNull UUID uuid) {
 
         if (SKULL_CACHE.containsKey(name)) {
@@ -87,14 +58,6 @@ public class HeadBuilder extends GenericItemBuilder {
         return builder;
     }
 
-    /**
-     * Fills in the itemstack's nbt with a name, uuid, and texture value.
-     *
-     * @param name    the name of the player
-     * @param uuid    the uuid of the player
-     * @param texture the texture value
-     * @return this head builder, for chaining
-     */
     public HeadBuilder texture(@NonNull String name, @NonNull UUID uuid, @NonNull String texture) {
         NBTItem nbtItem = new NBTItem(getItemStack());
         NBTCompound skull = nbtItem.addCompound("SkullOwner");

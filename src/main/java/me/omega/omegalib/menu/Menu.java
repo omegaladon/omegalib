@@ -3,7 +3,8 @@ package me.omega.omegalib.menu;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import me.omega.omegalib.Lib;
+import me.omega.omegalib.item.ItemBuilder;
+import me.omega.omegalib.utils.Text;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -18,9 +19,13 @@ public abstract class Menu implements InventoryHolder {
     private Player player;
 
     private Inventory inventory;
-    private final Component inventoryTitle;
+    @Setter
+    private Component inventoryTitle;
     private final int inventorySize;
     private final InventoryType inventoryType;
+
+    @Setter
+    private Menu fallbackMenu;
 
     @Setter
     private MenuAction<InventoryClickEvent> clickOutsideAction;
@@ -33,37 +38,19 @@ public abstract class Menu implements InventoryHolder {
     @Setter
     private MenuAction<InventoryClickEvent> clickBottomAction;
 
-    static {
-        Lib.getInstance().registerListeners(new MenuListener());
-    }
-
     @Getter
     @Setter
     private boolean cancelClick = true;
 
-
     /**
-     * Sets the items in the menu. This method is called once when the menu is opened, and can be called again to update
-     * the menu.
+     * Put code to set the items in the menu in this abstract method implementation.
      */
     public abstract void draw();
 
-    /**
-     * Creates a chest menu with a title and size.
-     *
-     * @param title the title
-     * @param size  the amount of rows
-     */
     public Menu(String title, int size) {
         this(title, size, InventoryType.CHEST);
     }
 
-    /**
-     * Creates a menu with a title and type. The size is determined by the default size of the {@link InventoryType}.
-     *
-     * @param title the title
-     * @param type  the type of menu
-     */
     public Menu(String title, @NonNull InventoryType type) {
         this(title, type.getDefaultSize(), type);
     }
@@ -72,7 +59,7 @@ public abstract class Menu implements InventoryHolder {
         if (title == null) {
             inventoryTitle = InventoryType.CHEST.defaultTitle();
         } else {
-            inventoryTitle = Component.text(title);
+            inventoryTitle = Text.componentOf(title);
         }
 
         if (size < 1 || size > 6) {
@@ -84,12 +71,6 @@ public abstract class Menu implements InventoryHolder {
         slots = new MenuItem[inventorySize];
     }
 
-    /**
-     * Opens the menu for a {@link Player}.
-     *
-     * @param player the {@link Player} to open the menu for
-     * @throws IllegalArgumentException if player is null
-     */
     public void open(@NonNull Player player) {
         this.player = player;
         if (inventoryType == InventoryType.CHEST) {
@@ -101,13 +82,24 @@ public abstract class Menu implements InventoryHolder {
         player.openInventory(inventory);
     }
 
-    /**
-     * Sets the {@link MenuItem} at a slot. If the given {@link MenuItem} is null, the slot will be cleared.
-     *
-     * @param slot the slot
-     * @param item the item
-     * @throws IllegalArgumentException if slot is outside the bounds of the inventory
-     */
+    public void openFallback(@NonNull Player player) {
+        if (fallbackMenu != null) {
+            fallbackMenu.open(player);
+        }
+    }
+
+    public void openNewMenu(@NonNull Player player, Menu menu) {
+        player.closeInventory();
+        menu.setFallbackMenu(this);
+        menu.open(player);
+    }
+
+    public void clear() {
+        for (int i = 0; i < inventorySize; i++) {
+            setItem(i, ItemBuilder.EMPTY);
+        }
+    }
+
     public void setItem(int slot, MenuItem item) {
         validateSlot(slot);
         slots[slot] = item;
@@ -117,7 +109,6 @@ public abstract class Menu implements InventoryHolder {
     /**
      * Adds a {@link MenuItem} to the next available slot in the menu.
      *
-     * @param item the {@link MenuItem} to add
      * @return true if the {@link MenuItem} was successfully added, false otherwise (if the menu is full)
      */
     public boolean addItem(@NonNull MenuItem item) {
@@ -132,58 +123,35 @@ public abstract class Menu implements InventoryHolder {
     /**
      * Adds {@link MenuItem}s to the next available slots in the menu.
      *
-     * @param items the {@link MenuItem}s to add
      * @return true if the {@link MenuItem}s were successfully added, false otherwise (if the menu is full)
      */
     public boolean addItems(@NonNull MenuItem... items) {
         boolean success = true;
         for (MenuItem item : items) {
-            success &= addItem(item);
+            success = addItem(item);
+            if (!success) {
+                break;
+            }
         }
         return success;
     }
 
-    /**
-     * Removes the {@link MenuItem} at a slot from the menu.
-     *
-     * @param slot the slot
-     * @throws IllegalArgumentException if slot is outside the bounds of the inventory
-     */
     public void removeItem(int slot) {
         validateSlot(slot);
         slots[slot] = null;
         inventory.setItem(slot, null);
     }
 
-    /**
-     * Checks whether there is a {@link MenuItem} at a slot in the menu.
-     *
-     * @param slot the slot
-     * @return true if there is a {@link MenuItem} at the slot, false otherwise
-     * @throws IllegalArgumentException if slot is outside the bounds of the inventory
-     */
     public boolean hasItem(int slot) {
         validateSlot(slot);
         return slots[slot] != null;
     }
 
-    /**
-     * Returns the {@link MenuItem} at a slot in the menu.
-     *
-     * @param slot the slot
-     * @return the {@link MenuItem} at the slot
-     * @throws IllegalArgumentException if slot is outside the bounds of the inventory
-     */
     public MenuItem getItem(int slot) {
         validateSlot(slot);
         return slots[slot];
     }
 
-    /**
-     * Fills the entire inventory with a {@link MenuItem}.
-     *
-     * @param item the {@link MenuItem} to fill the menu with
-     */
     public void fill(@NonNull MenuItem item) {
         for (int i = 0; i < inventorySize; i++) {
             setItem(i, item);
@@ -199,8 +167,6 @@ public abstract class Menu implements InventoryHolder {
      * <p/>
      * If the given item is null, then the next non-accepted "key" character will be cleared.
      *
-     * @param pattern the {@link MenuPattern}
-     * @param item    the menu item to add
      * @return true if the {@link MenuItem} was successfully added, false otherwise (if the pattern is full)
      * @throws IllegalArgumentException if the pattern is not compatible with the menu
      * @throws IllegalStateException    if all slots in the pattern have already been accepted
@@ -226,8 +192,6 @@ public abstract class Menu implements InventoryHolder {
      * <p/>
      * If the given item is null, then all "key" characters in the pattern will be cleared.
      *
-     * @param pattern the {@link MenuPattern}
-     * @param item    the menu item to use
      * @throws IllegalArgumentException if the pattern is not compatible with the menu
      */
     public void fillPattern(@NonNull MenuPattern pattern, MenuItem item) {
@@ -240,11 +204,6 @@ public abstract class Menu implements InventoryHolder {
         }
     }
 
-    /**
-     * Gets the index of the next empty slot in the menu.
-     *
-     * @return the index of the next empty slot, or -1 if the menu is full
-     */
     public int getNextEmptySlot() {
         for (int i = 0; i < inventorySize; i++) {
             if (inventory.getItem(i) == null) {
@@ -253,6 +212,7 @@ public abstract class Menu implements InventoryHolder {
         }
         return -1;
     }
+
 
     private void validateSlot(int slot) {
         if (inventoryType == InventoryType.CHEST) {
@@ -276,11 +236,6 @@ public abstract class Menu implements InventoryHolder {
         return inventory;
     }
 
-    /**
-     * Gets the {@link Player} who opened the menu.
-     *
-     * @return the player
-     */
     public Player getPlayer() {
         if (player == null) {
             throw new IllegalStateException("Player is null because the menu has not been opened yet.");
