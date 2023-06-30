@@ -1,33 +1,29 @@
 package me.omega.omegalib.scheduling;
 
-import lombok.experimental.UtilityClass;
+import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.CompletableFuture;
 
-@UtilityClass
+@AllArgsConstructor
 public class Scheduler {
 
-    private static JavaPlugin plugin;
+    private final JavaPlugin plugin;
 
-    private static final SyncScheduler sync = new SyncScheduler();
-    private static final AsyncScheduler async = new AsyncScheduler();
+    private final SyncScheduler sync = new SyncScheduler();
+    private final AsyncScheduler async = new AsyncScheduler();
 
-    public static SyncScheduler sync() {
+    public SyncScheduler sync() {
         return sync;
     }
 
-    public static AsyncScheduler async() {
+    public AsyncScheduler async() {
         return async;
     }
 
-    public static void init(JavaPlugin plugin) {
-        Scheduler.plugin = plugin;
-    }
-
-    public static void cancelAll() {
+    public void cancelAll() {
         Bukkit.getScheduler().cancelTasks(plugin);
     }
 

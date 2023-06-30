@@ -30,6 +30,12 @@ public class MenuListener implements Listener {
                 return;
             }
 
+            System.out.println("checking click action");
+            if (menu.getClickAction() != null) {
+                System.out.println("Click action");
+                menu.getClickAction().execute(event);
+            }
+
             int clickedSlot = event.getRawSlot();
             MenuItem clickedItem = menu.getSlots()[clickedSlot];
             if (clickedItem == null) {
@@ -37,7 +43,7 @@ public class MenuListener implements Listener {
             }
 
             if (clickedItem.action() == null) {
-                event.setCancelled(true);
+                if (menu.isCancelClick()) event.setCancelled(true);
                 return;
             }
 

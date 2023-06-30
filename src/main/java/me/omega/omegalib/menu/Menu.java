@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
 
 @Getter
 public abstract class Menu implements InventoryHolder {
@@ -37,6 +38,8 @@ public abstract class Menu implements InventoryHolder {
     private MenuAction<InventoryOpenEvent> menuOpenAction;
     @Setter
     private MenuAction<InventoryClickEvent> clickBottomAction;
+    @Setter
+    private MenuAction<InventoryClickEvent> clickAction;
 
     @Getter
     @Setter
@@ -150,6 +153,10 @@ public abstract class Menu implements InventoryHolder {
     public MenuItem getItem(int slot) {
         validateSlot(slot);
         return slots[slot];
+    }
+
+    public ItemStack getRawItem(int slot) {
+        return inventory.getItem(slot);
     }
 
     public void fill(@NonNull MenuItem item) {

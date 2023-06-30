@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import lombok.Getter;
 import me.omega.omegalib.item.head.Heads;
 import me.omega.omegalib.menu.MenuListener;
-import me.omega.omegalib.scheduling.Scheduler;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,9 +16,6 @@ public class OmegaLib extends JavaPlugin {
 
     @Override
     public void onEnable() {
-
-        Scheduler.init(this);
-
         INSTANCE = this;
 
         registerListeners();
@@ -32,7 +28,6 @@ public class OmegaLib extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Scheduler.cancelAll();
         getLogger().info("omegalib disabled!");
     }
 
